@@ -19,10 +19,10 @@
       file:
         path: "/var/nfs_share/upload"
         state: directory
-        mode: o+w
+        mode: '0777'
       when: server
 
-    - name: share conf read-only
+    - name: share conf
       lineinfile:
         path: /etc/exports
         line: "/var/nfs_share 192.168.29.151(rw,sync,all_squash,no_subtree_check)"

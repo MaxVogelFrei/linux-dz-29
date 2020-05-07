@@ -28,7 +28,7 @@ vagrant up должен поднимать 2 виртуалки: сервер и
       file:
         path: "/var/nfs_share/upload"
         state: directory
-        mode: '777'
+        mode: '0777'
       when: server
 ```
 * разрешение подключения с ip клиента и включение nfs v3
