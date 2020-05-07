@@ -1,0 +1,81 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    
+    - name: nfs-utils
+      yum:
+        name:
+        - nfs-utils
+        state: latest
+
+    - name: create shared folder
+      file:
+        path: "/var/nfs_share"
+        state: directory
+        mode: '0755'
+
+    - name: create upload
+      file:
+        path: "/var/nfs_share/upload"
+        state: directory
+        mode: o+w
+      when: server
+
+    - name: share conf read-only
+      lineinfile:
+        path: /etc/exports
+        line: "/var/nfs_share 192.168.29.151(rw,sync,all_squash,no_subtree_check)"
+      when: server
+
+    - name: uncomment nfsv3
+      replace:
+        path: /etc/nfs.conf
+        regexp: "{{ item.regexp }}"
+        replace: "{{ item.replace }}"
+      loop:
+        - { regexp: "^#[nfsd]", replace: "[nfsd]"  }
+        - { regexp: "^# vers3=y", replace: "vers3=y"  }
+      when: server
+
+    - name: enable firewalld
+      systemd:
+        service: firewalld
+        state: started
+        enabled: yes
+      when: server
+
+    - name : firewalld config
+      firewalld:
+        zone: public
+        service: "{{ item }}"
+        permanent: yes
+        immediate: yes
+        state: enabled
+      loop:
+        - mountd
+        - rpc-bind
+        - nfs3
+      when: server
+
+    - name: enable nfs
+      systemd:
+        state: started
+        name: "{{ item }}"
+        enabled: yes
+      loop:
+        - rpcbind
+        - nfs-server
+        - nfs-lock
+        - nfs-idmap  
+
+    - name: mount the nfsshare in client side
+      mount:
+        fstype: nfs
+        opts: nofail,proto=udp,vers=3
+        dump: 0
+        passno: 2
+        src: "192.168.29.150:/var/nfs_share"
+        path: "/var/nfs_share"
+        state: mounted
+      when: not server
