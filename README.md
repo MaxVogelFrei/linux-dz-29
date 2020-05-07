@@ -11,12 +11,13 @@ vagrant up должен поднимать 2 виртуалки: сервер и
 - требования для NFS: NFSv3 по UDP, включенный firewall  
 
 ## Решение
-
-Стенд из 2 ВМ server и client настраивается плэйбуком [nfs.yml](nfs.yml)
-
+```bash
+vagrant up
+```
+разворачивает стенд из 2 ВМ server и client  
+стенд настраивается плэйбуком [nfs.yml](nfs.yml)  
 ### Server
-
-* создание папки для RO-шары и upload c правами на запись для всех (только на сервере)
+Создание папки для RO-шары и upload c правами на запись для всех (только на сервере)
 ```yaml
     - name: create shared folder
       file:
@@ -31,7 +32,7 @@ vagrant up должен поднимать 2 виртуалки: сервер и
         mode: '0777'
       when: server
 ```
-* разрешение подключения с ip клиента и включение nfs v3
+Разрешение подключения с ip клиента и включение nfs v3
 ```yaml
     - name: share conf 
       lineinfile:
@@ -49,7 +50,7 @@ vagrant up должен поднимать 2 виртуалки: сервер и
         - { regexp: "^# vers3=y", replace: "vers3=y"  }
       when: server
 ```
-* разрешение сервисов в firewalld
+Разрешение сервисов в firewalld
 ```yaml
     - name : firewalld config
       firewalld:
@@ -65,8 +66,7 @@ vagrant up должен поднимать 2 виртуалки: сервер и
       when: server
 ```
 ### Client
-
-* Запись в fstab для автоматического подключения при загрузке
+Запись в fstab для автоматического подключения при загрузке
 ```yaml
     - name: mount the nfsshare in client side
       mount:
@@ -81,7 +81,7 @@ vagrant up должен поднимать 2 виртуалки: сервер и
 ```
 
 ## Проверка
-доступ на запись в /var/nfs_share отсутствует  
+Доступ на запись в /var/nfs_share отсутствует  
 ```bash
 [root@centos7 linux-dz-29]# vagrant ssh client
 Last login: Thu May  7 19:05:07 2020 from 10.0.2.2
@@ -92,7 +92,7 @@ drwxr-xrwx. 2 root root 6 May  7 19:04 upload
 [vagrant@client nfs_share]$ touch 123
 touch: cannot touch '123': Permission denied
 ```
-доступ на запись в /var/nfs_share/upload разрешен  
+Доступ на запись в /var/nfs_share/upload разрешен  
 ```bash
 [vagrant@client nfs_share]$ cd upload
 [vagrant@client upload]$ touch 123
